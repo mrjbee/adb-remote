@@ -72,13 +72,17 @@ var OPS_MAP = map[string]AndroidKey{
 	string(fyne.KeySpace):     {CreateSendKeyOperation("85"), "Play/Pause"},
 	string(fyne.KeyA): {func() bool {
 		return services.SendCustomShell("input tap 200 400;input tap 200 400")
-	}, "Double tap left"},
+	}, "Double Tap Left"},
 	string(fyne.KeyD): {func() bool {
 		return services.SendCustomShell("input tap 2000 500;input tap 2000 500")
-	}, "Double tap left"},
+	}, "Double Tap Reft"},
+	string(fyne.KeyDelete): {func() bool {
+		return services.SendKeyEvent("127") && services.SendKeyEvent(services.KEYCODE_HOME)
+	}, "Script: Pause & Home"},
 }
 
 func redirectKeyPress(k *fyne.KeyEvent, owner *ui.UI) {
+	log.Print("Get key - " + k.Name)
 	adbOperation, prs := OPS_MAP[string(k.Name)]
 	if prs {
 		log.Print("Going to send - " + adbOperation.title)
