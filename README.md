@@ -15,3 +15,5 @@
     - backspace for `Back`
     - right shift for `Home`
     - ... see source code for more
+
+![Key Capture Mode](/screenshot.png?raw=true "Key awaiting window")
