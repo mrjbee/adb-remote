@@ -15,8 +15,19 @@ const KEYCODE_DPAD_CENTER = "23"
 const KEYCODE_HOME = "3"
 const KEYCODE_BACK = "4"
 
+// adb shell "input tap 200 400;input tap 200 400"
 func SendKeyEvent(keyEvent string) bool {
 	cmd := exec.Command("adb", "shell", "input", "keyevent", keyEvent)
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
+}
+
+func SendCustomShell(shellCommand string) bool {
+	cmd := exec.Command("adb", "shell", shellCommand)
 	_, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err.Error())

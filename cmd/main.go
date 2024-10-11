@@ -44,32 +44,46 @@ func main() {
 	}
 }
 
+type AdbOperation func() bool
+
 type AndroidKey struct {
-	code  string
-	title string
+	action AdbOperation
+	title  string
 }
 
-var ANDROID_KEY_MAP = map[string]AndroidKey{
-	string(fyne.KeyBackspace): {services.KEYCODE_BACK, "Back"},
-	"RightShift":              {services.KEYCODE_HOME, "Home"},
-	string(fyne.KeyRight):     {services.KEYCODE_DPAD_RIGHT, "Right"},
-	string(fyne.KeyLeft):      {services.KEYCODE_DPAD_LEFT, "Left"},
-	string(fyne.KeyUp):        {services.KEYCODE_DPAD_UP, "Up"},
-	string(fyne.KeyDown):      {services.KEYCODE_DPAD_DOWN, "Down"},
-	string(fyne.KeyReturn):    {"66", "Enter"},
-	string(fyne.KeyMinus):     {"25", "Volume Down"},
-	string(fyne.KeyEqual):     {"24", "Volume Up"},
-	string(fyne.KeyPageDown):  {"25", "Volume Down"},
-	string(fyne.KeyPageUp):    {"24", "Volume Up"},
-	string(fyne.KeySpace):     {"85", "Play/Pause"},
+func CreateSendKeyOperation(keyEvent string) AdbOperation {
+	return func() bool {
+		return services.SendKeyEvent(keyEvent)
+	}
+}
+
+var OPS_MAP = map[string]AndroidKey{
+	string(fyne.KeyBackspace): {CreateSendKeyOperation(services.KEYCODE_BACK), "Back"},
+	"RightShift":              {CreateSendKeyOperation(services.KEYCODE_HOME), "Home"},
+	string(fyne.KeyRight):     {CreateSendKeyOperation(services.KEYCODE_DPAD_RIGHT), "Right"},
+	string(fyne.KeyLeft):      {CreateSendKeyOperation(services.KEYCODE_DPAD_LEFT), "Left"},
+	string(fyne.KeyUp):        {CreateSendKeyOperation(services.KEYCODE_DPAD_UP), "Up"},
+	string(fyne.KeyDown):      {CreateSendKeyOperation(services.KEYCODE_DPAD_DOWN), "Down"},
+	string(fyne.KeyReturn):    {CreateSendKeyOperation("66"), "Enter"},
+	string(fyne.KeyMinus):     {CreateSendKeyOperation("25"), "Volume Down"},
+	string(fyne.KeyEqual):     {CreateSendKeyOperation("24"), "Volume Up"},
+	string(fyne.KeyPageDown):  {CreateSendKeyOperation("25"), "Volume Down"},
+	string(fyne.KeyPageUp):    {CreateSendKeyOperation("24"), "Volume Up"},
+	string(fyne.KeySpace):     {CreateSendKeyOperation("85"), "Play/Pause"},
+	string(fyne.KeyA): {func() bool {
+		return services.SendCustomShell("input tap 200 400;input tap 200 400")
+	}, "Double tap left"},
+	string(fyne.KeyD): {func() bool {
+		return services.SendCustomShell("input tap 2000 500;input tap 2000 500")
+	}, "Double tap left"},
 }
 
 func redirectKeyPress(k *fyne.KeyEvent, owner *ui.UI) {
-	androidKey, prs := ANDROID_KEY_MAP[string(k.Name)]
+	adbOperation, prs := OPS_MAP[string(k.Name)]
 	if prs {
-		log.Print("Going to send - " + androidKey.title)
-		if services.SendKeyEvent(androidKey.code) {
-			owner.SetText("<" + androidKey.title + ">")
+		log.Print("Going to send - " + adbOperation.title)
+		if adbOperation.action() {
+			owner.SetText("<" + adbOperation.title + ">")
 		}
 	} else {
 		log.Printf("No mapping for %s[%d] ", k.Name, k.Physical.ScanCode)
