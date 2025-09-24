@@ -58,23 +58,25 @@ func CreateSendKeyOperation(keyEvent string) AdbOperation {
 }
 
 var OPS_MAP = map[string]AndroidKey{
-	string(fyne.KeyBackspace): {CreateSendKeyOperation(services.KEYCODE_BACK), "Back"},
-	"RightShift":              {CreateSendKeyOperation(services.KEYCODE_HOME), "Home"},
-	string(fyne.KeyRight):     {CreateSendKeyOperation(services.KEYCODE_DPAD_RIGHT), "Right"},
-	string(fyne.KeyLeft):      {CreateSendKeyOperation(services.KEYCODE_DPAD_LEFT), "Left"},
-	string(fyne.KeyUp):        {CreateSendKeyOperation(services.KEYCODE_DPAD_UP), "Up"},
-	string(fyne.KeyDown):      {CreateSendKeyOperation(services.KEYCODE_DPAD_DOWN), "Down"},
-	string(fyne.KeyReturn):    {CreateSendKeyOperation("66"), "Enter"},
-	string(fyne.KeyMinus):     {CreateSendKeyOperation("25"), "Volume Down"},
-	string(fyne.KeyEqual):     {CreateSendKeyOperation("24"), "Volume Up"},
-	string(fyne.KeyPageDown):  {CreateSendKeyOperation("25"), "Volume Down"},
-	string(fyne.KeyPageUp):    {CreateSendKeyOperation("24"), "Volume Up"},
-	string(fyne.KeySpace):     {CreateSendKeyOperation("85"), "Play/Pause"},
+	string(fyne.KeyBackspace):    {CreateSendKeyOperation(services.KEYCODE_BACK), "Back"},
+	"RightShift":                 {CreateSendKeyOperation(services.KEYCODE_HOME), "Home"},
+	string(fyne.KeyRight):        {CreateSendKeyOperation(services.KEYCODE_DPAD_RIGHT), "Right"},
+	string(fyne.KeyLeft):         {CreateSendKeyOperation(services.KEYCODE_DPAD_LEFT), "Left"},
+	string(fyne.KeyUp):           {CreateSendKeyOperation(services.KEYCODE_DPAD_UP), "Up"},
+	string(fyne.KeyDown):         {CreateSendKeyOperation(services.KEYCODE_DPAD_DOWN), "Down"},
+	string(fyne.KeyReturn):       {CreateSendKeyOperation("66"), "Enter"},
+	string(fyne.KeyMinus):        {CreateSendKeyOperation("25"), "Volume Down"},
+	string(fyne.KeyEqual):        {CreateSendKeyOperation("24"), "Volume Up"},
+	string(fyne.KeyPageDown):     {CreateSendKeyOperation("25"), "Volume Down"},
+	string(fyne.KeyPageUp):       {CreateSendKeyOperation("24"), "Volume Up"},
+	string(fyne.KeySpace):        {CreateSendKeyOperation("85"), "Play/Pause"},
+	string(fyne.KeyLeftBracket):  {CreateSendKeyOperation("88"), "Previous"},
+	string(fyne.KeyRightBracket): {CreateSendKeyOperation("87"), "Next"},
 	string(fyne.KeyA): {func() bool {
 		return services.SendCustomShell("input tap 100 200& sleep 0.03; input tap 100 200")
 	}, "Double Tap Left"},
 	string(fyne.KeyD): {func() bool {
-		return services.SendCustomShell("input tap 2000 200& sleep 0.03; input tap 2000 200")
+		return services.SendCustomShell("input tap 1800 200& sleep 0.03; input tap 1800 200")
 	}, "Double Tap Reft"},
 	string(fyne.KeyDelete): {func() bool {
 		return services.SendKeyEvent("127") && services.SendKeyEvent(services.KEYCODE_HOME)
