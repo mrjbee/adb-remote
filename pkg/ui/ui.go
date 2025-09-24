@@ -18,6 +18,7 @@ type UI struct {
 	systemMenu    fyne.Menu
 	outputLabel   *widget.Label
 	cleanupTimer  *time.Timer
+	processingLen int
 }
 
 func New() UI {
@@ -36,8 +37,8 @@ func (ui UI) ShowHide() {
 		ui.grabberWindow.Show()
 	}
 }
-func (ui *UI) SetText(text string) {
-	ui.outputLabel.SetText(text)
+
+func (ui *UI) ResetText() {
 	if ui.cleanupTimer != nil {
 		ui.cleanupTimer.Reset(1 * time.Second)
 	} else {
@@ -50,9 +51,14 @@ func (ui *UI) SetText(text string) {
 	}()
 }
 
+func (ui *UI) SetText(text string) {
+	ui.outputLabel.SetText(text)
+}
+
 func (ui *UI) Init(onKeyPress func(k *fyne.KeyEvent, owner *UI)) bool {
 	ui.application = app.New()
 	ui.grabberWindow = ui.application.NewWindow("Android Shortcuts")
+	ui.processingLen = 0
 
 	var ok bool
 	ui.desk, ok = ui.application.(desktop.App)
@@ -90,7 +96,13 @@ func (ui *UI) Init(onKeyPress func(k *fyne.KeyEvent, owner *UI)) bool {
 		if k.Name == fyne.KeyEscape {
 			ui.grabberWindow.Hide()
 		} else {
-			onKeyPress(k, ui)
+			if ui.processingLen < 3 {
+				ui.processingLen += 1
+				go func() {
+					onKeyPress(k, ui)
+					ui.processingLen -= 1
+				}()
+			}
 		}
 	})
 	return true

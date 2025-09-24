@@ -71,10 +71,10 @@ var OPS_MAP = map[string]AndroidKey{
 	string(fyne.KeyPageUp):    {CreateSendKeyOperation("24"), "Volume Up"},
 	string(fyne.KeySpace):     {CreateSendKeyOperation("85"), "Play/Pause"},
 	string(fyne.KeyA): {func() bool {
-		return services.SendCustomShell("input tap 200 400;input tap 200 400")
+		return services.SendCustomShell("input tap 100 200& sleep 0.03; input tap 100 200")
 	}, "Double Tap Left"},
 	string(fyne.KeyD): {func() bool {
-		return services.SendCustomShell("input tap 2000 500;input tap 2000 500")
+		return services.SendCustomShell("input tap 2000 200& sleep 0.03; input tap 2000 200")
 	}, "Double Tap Reft"},
 	string(fyne.KeyDelete): {func() bool {
 		return services.SendKeyEvent("127") && services.SendKeyEvent(services.KEYCODE_HOME)
@@ -86,9 +86,10 @@ func redirectKeyPress(k *fyne.KeyEvent, owner *ui.UI) {
 	adbOperation, prs := OPS_MAP[string(k.Name)]
 	if prs {
 		log.Print("Going to send - " + adbOperation.title)
+		owner.SetText("<" + adbOperation.title + ">")
 		if adbOperation.action() {
-			owner.SetText("<" + adbOperation.title + ">")
 		}
+		owner.SetText("<Nothing Pressed>")
 	} else {
 		log.Printf("No mapping for %s[%d] ", k.Name, k.Physical.ScanCode)
 	}
