@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"log"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -9,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/mrjbee/android-adb-shortcuts/pkg/kbc"
 )
 
 type UI struct {
@@ -55,7 +57,7 @@ func (ui *UI) SetText(text string) {
 	ui.outputLabel.SetText(text)
 }
 
-func (ui *UI) Init(onKeyPress func(k *fyne.KeyEvent, owner *UI)) bool {
+func (ui *UI) Init(config kbc.KeyBindConfig) bool {
 	ui.application = app.New()
 	ui.grabberWindow = ui.application.NewWindow("Android Shortcuts")
 	ui.processingLen = 0
@@ -92,18 +94,39 @@ func (ui *UI) Init(onKeyPress func(k *fyne.KeyEvent, owner *UI)) bool {
 		ui.grabberWindow.Hide()
 	})
 
-	ui.grabberWindow.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
-		if k.Name == fyne.KeyEscape {
-			ui.grabberWindow.Hide()
-		} else {
-			if ui.processingLen < 3 {
-				ui.processingLen += 1
-				go func() {
-					onKeyPress(k, ui)
-					ui.processingLen -= 1
-				}()
-			}
+	config.ForEach(func(key string, ak kbc.AndroidKey) {
+
+		sc := desktop.CustomShortcut{
+			KeyName:  fyne.KeyName(key),
+			Modifier: fyne.KeyModifierAlt,
 		}
+
+		log.Print("Init key - " + sc.ShortcutName())
+
+		ui.grabberWindow.Canvas().AddShortcut(&sc, func(s fyne.Shortcut) {
+			go func() {
+				log.Print("Get key - " + key)
+				log.Print("Going to send - " + ak.Тitle)
+				ui.SetText("<" + ak.Тitle + ">")
+			}()
+		})
 	})
+
+	/*
+		ui.grabberWindow.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
+			if k.Name == fyne.KeyEscape {
+				ui.grabberWindow.Hide()
+			} else {
+				if ui.processingLen < 3 {
+					ui.processingLen += 1
+					go func() {
+						//	onKeyPress(k, ui)
+						ui.processingLen -= 1
+					}()
+				}
+			}
+		})
+	*/
+
 	return true
 }
