@@ -9,34 +9,48 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/mrjbee/android-adb-shortcuts/pkg/kbc"
 )
 
 type UI struct {
-	desk          desktop.App
-	application   fyne.App
-	grabberWindow fyne.Window
-	systemMenu    fyne.Menu
-	outputLabel   *widget.Label
-	cleanupTimer  *time.Timer
-	processingLen int
+	desk                 desktop.App
+	application          fyne.App
+	grabberWindow        fyne.Window
+	grabberWindowVisible bool
+	systemMenu           fyne.Menu
+	outputLabel          *widget.Label
+	cleanupTimer         *time.Timer
+	processingLen        int
 }
 
 func New() UI {
 	return UI{}
 }
 
-func (ui UI) Start() {
+func (ui *UI) Start() {
+	ui.grabberWindowVisible = true
 	ui.grabberWindow.ShowAndRun()
 }
 
-func (ui UI) ShowHide() {
+func (ui *UI) Show() {
+	ui.grabberWindowVisible = true
+	ui.grabberWindow.Show()
+}
+
+func (ui *UI) Hide() {
+	ui.grabberWindowVisible = false
+	ui.grabberWindow.Hide()
+}
+
+func (ui *UI) ShowHide() {
 	ui.SetText("<Nothing Pressed>")
-	if ui.grabberWindow.Content().Visible() {
-		ui.grabberWindow.Hide()
+	if ui.grabberWindowVisible {
+		ui.Hide()
 	} else {
-		ui.grabberWindow.Show()
+		ui.Show()
+		ui.grabberWindow.CenterOnScreen()
 	}
 }
 
@@ -57,9 +71,12 @@ func (ui *UI) SetText(text string) {
 	ui.outputLabel.SetText(text)
 }
 
-func (ui *UI) Init(config kbc.KeyBindConfig) bool {
+func (ui *UI) Init(kbc kbc.KeyBindConfig) bool {
 	ui.application = app.New()
-	ui.grabberWindow = ui.application.NewWindow("Android Shortcuts")
+	ui.application = app.NewWithID("tapdo")
+	ui.application.SetIcon(theme.FyneLogo())
+	ui.grabberWindow = ui.application.NewWindow("TapDO")
+	ui.grabberWindow.SetIcon(theme.FyneLogo())
 	ui.processingLen = 0
 
 	var ok bool
@@ -71,12 +88,13 @@ func (ui *UI) Init(config kbc.KeyBindConfig) bool {
 
 	ui.systemMenu = *fyne.NewMenu("Android Shortcuts",
 		fyne.NewMenuItem("Show", func() {
-			ui.grabberWindow.Show()
+			ui.Show()
 		}),
 	)
 	ui.desk.SetSystemTrayMenu(&ui.systemMenu)
 
 	ui.grabberWindow.Resize(fyne.Size{Height: 100, Width: 500})
+	ui.grabberWindow.CenterOnScreen()
 	ui.outputLabel = widget.NewLabelWithStyle("<Nothing Pressed>",
 		fyne.TextAlignCenter,
 		fyne.TextStyle{
@@ -91,42 +109,35 @@ func (ui *UI) Init(config kbc.KeyBindConfig) bool {
 		content,
 	)
 	ui.grabberWindow.SetCloseIntercept(func() {
-		ui.grabberWindow.Hide()
+		ui.Hide()
 	})
 
-	config.ForEach(func(key string, ak kbc.AndroidKey) {
-
-		sc := desktop.CustomShortcut{
-			KeyName:  fyne.KeyName(key),
-			Modifier: fyne.KeyModifierAlt,
-		}
-
-		log.Print("Init key - " + sc.ShortcutName())
-
-		ui.grabberWindow.Canvas().AddShortcut(&sc, func(s fyne.Shortcut) {
-			go func() {
-				log.Print("Get key - " + key)
-				log.Print("Going to send - " + ak.Тitle)
-				ui.SetText("<" + ak.Тitle + ">")
-			}()
-		})
-	})
-
-	/*
-		ui.grabberWindow.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
-			if k.Name == fyne.KeyEscape {
-				ui.grabberWindow.Hide()
-			} else {
-				if ui.processingLen < 3 {
-					ui.processingLen += 1
-					go func() {
-						//	onKeyPress(k, ui)
-						ui.processingLen -= 1
-					}()
-				}
+	ui.grabberWindow.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
+		if k.Name == fyne.KeyEscape {
+			ui.Hide()
+		} else {
+			log.Printf("Get key: %s - scanCode: %d", k.Name, k.Physical.ScanCode)
+			var adbOperation, exists = kbc.GetByKeyOk(string(k.Name))
+			if !exists {
+				return
 			}
-		})
-	*/
-
+			if ui.processingLen < 3 {
+				ui.processingLen += 1
+				go func() {
+					log.Print("Going to send - " + adbOperation.Title)
+					fyne.DoAndWait(func() {
+						ui.SetText("<" + adbOperation.Title + ">")
+					})
+					if adbOperation.Action() {
+						//not sure about this
+					}
+					fyne.DoAndWait(func() {
+						ui.SetText("<Nothing Pressed>")
+					})
+					ui.processingLen -= 1
+				}()
+			}
+		}
+	})
 	return true
 }

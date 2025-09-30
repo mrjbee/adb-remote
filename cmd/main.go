@@ -35,7 +35,9 @@ func main() {
 		}, func(command string) bool {
 			switch command {
 			case "showHide":
-				ui.ShowHide()
+				fyne.DoAndWait(func() {
+					ui.ShowHide()
+				})
 				return true
 			}
 			return false
@@ -53,41 +55,28 @@ func CreateSendKeyOperation(keyEvent string) kbc.AdbOperation {
 }
 
 var OPS_MAP = map[string]kbc.AndroidKey{
-	string(fyne.KeyBackspace):    {Аction: CreateSendKeyOperation(services.KEYCODE_BACK), Тitle: "Back"},
-	"RightShift":                 {Аction: CreateSendKeyOperation(services.KEYCODE_HOME), Тitle: "Home"},
-	string(fyne.KeyRight):        {Аction: CreateSendKeyOperation(services.KEYCODE_DPAD_RIGHT), Тitle: "Right"},
-	string(fyne.KeyLeft):         {Аction: CreateSendKeyOperation(services.KEYCODE_DPAD_LEFT), Тitle: "Left"},
-	string(fyne.KeyUp):           {Аction: CreateSendKeyOperation(services.KEYCODE_DPAD_UP), Тitle: "Up"},
-	string(fyne.KeyDown):         {Аction: CreateSendKeyOperation(services.KEYCODE_DPAD_DOWN), Тitle: "Down"},
-	string(fyne.KeyReturn):       {Аction: CreateSendKeyOperation("66"), Тitle: "Enter"},
-	string(fyne.KeyMinus):        {Аction: CreateSendKeyOperation("25"), Тitle: "Volume Down"},
-	string(fyne.KeyEqual):        {Аction: CreateSendKeyOperation("24"), Тitle: "Volume Up"},
-	string(fyne.KeyPageDown):     {Аction: CreateSendKeyOperation("25"), Тitle: "Volume Down"},
-	string(fyne.KeyPageUp):       {Аction: CreateSendKeyOperation("24"), Тitle: "Volume Up"},
-	string(fyne.KeySpace):        {Аction: CreateSendKeyOperation("85"), Тitle: "Play/Pause"},
-	string(fyne.KeyLeftBracket):  {Аction: CreateSendKeyOperation("88"), Тitle: "Previous"},
-	string(fyne.KeyRightBracket): {Аction: CreateSendKeyOperation("87"), Тitle: "Next"},
-	string(fyne.KeyA): {Аction: func() bool {
+	string(fyne.KeyBackspace):    {Action: CreateSendKeyOperation(services.KEYCODE_BACK), Title: "Back"},
+	"RightShift":                 {Action: CreateSendKeyOperation(services.KEYCODE_HOME), Title: "Home"},
+	string(fyne.KeyRight):        {Action: CreateSendKeyOperation(services.KEYCODE_DPAD_RIGHT), Title: "Right"},
+	string(fyne.KeyLeft):         {Action: CreateSendKeyOperation(services.KEYCODE_DPAD_LEFT), Title: "Left"},
+	string(fyne.KeyUp):           {Action: CreateSendKeyOperation(services.KEYCODE_DPAD_UP), Title: "Up"},
+	string(fyne.KeyDown):         {Action: CreateSendKeyOperation(services.KEYCODE_DPAD_DOWN), Title: "Down"},
+	string(fyne.KeyL):            {Action: CreateSendKeyOperation("26"), Title: "Lock/Unlock"},
+	string(fyne.KeyReturn):       {Action: CreateSendKeyOperation("66"), Title: "Enter"},
+	string(fyne.KeyMinus):        {Action: CreateSendKeyOperation("25"), Title: "Volume Down"},
+	string(fyne.KeyEqual):        {Action: CreateSendKeyOperation("24"), Title: "Volume Up"},
+	string(fyne.KeyPageDown):     {Action: CreateSendKeyOperation("25"), Title: "Volume Down"},
+	string(fyne.KeyPageUp):       {Action: CreateSendKeyOperation("24"), Title: "Volume Up"},
+	string(fyne.KeySpace):        {Action: CreateSendKeyOperation("85"), Title: "Play/Pause"},
+	string(fyne.KeyLeftBracket):  {Action: CreateSendKeyOperation("88"), Title: "Previous"},
+	string(fyne.KeyRightBracket): {Action: CreateSendKeyOperation("87"), Title: "Next"},
+	string(fyne.KeyA): {Action: func() bool {
 		return services.SendCustomShell("input tap 100 200& sleep 0.03; input tap 100 200")
-	}, Тitle: "Double Tap Left"},
-	string(fyne.KeyD): {Аction: func() bool {
+	}, Title: "Double Tap Left"},
+	string(fyne.KeyD): {Action: func() bool {
 		return services.SendCustomShell("input tap 1800 200& sleep 0.03; input tap 1800 200")
-	}, Тitle: "Double Tap Reft"},
-	string(fyne.KeyDelete): {Аction: func() bool {
+	}, Title: "Double Tap Reft"},
+	string(fyne.KeyDelete): {Action: func() bool {
 		return services.SendKeyEvent("127") && services.SendKeyEvent(services.KEYCODE_HOME)
-	}, Тitle: "Script: Pause & Home"},
-}
-
-func redirectKeyPress(k *fyne.KeyEvent, owner *ui.UI) {
-	log.Print("Get key - " + k.Name)
-	adbOperation, prs := OPS_MAP[string(k.Name)]
-	if prs {
-		log.Print("Going to send - " + adbOperation.Тitle)
-		owner.SetText("<" + adbOperation.Тitle + ">")
-		if adbOperation.Аction() {
-		}
-		owner.SetText("<Nothing Pressed>")
-	} else {
-		log.Printf("No mapping for %s[%d] ", k.Name, k.Physical.ScanCode)
-	}
+	}, Title: "Script: Pause & Home"},
 }

@@ -3,8 +3,8 @@ package kbc
 type AdbOperation func() bool
 
 type AndroidKey struct {
-	Аction AdbOperation
-	Тitle  string
+	Action AdbOperation
+	Title  string
 }
 
 type KeyBindConfig struct {
@@ -19,4 +19,12 @@ func (c *KeyBindConfig) ForEach(apply func(key string, ak AndroidKey)) {
 	for k, v := range c.Ops {
 		apply(k, v)
 	}
+}
+
+func (c *KeyBindConfig) GetByKeyOk(key string) (AndroidKey, bool) {
+	if c == nil || c.Ops == nil {
+		return AndroidKey{}, false
+	}
+	ak, ok := c.Ops[key]
+	return ak, ok
 }
